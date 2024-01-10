@@ -1,1 +1,1 @@
-from teanga_spacy import SpacyService
+from .teanga_spacy import SpacyService

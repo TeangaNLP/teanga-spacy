@@ -1,5 +1,5 @@
 import spacy
-from teanga.services import Service
+from teanga import Service
 
 class SpacyService(Service):
     """A service that uses spaCy to tokenize and tag text.
@@ -20,12 +20,13 @@ class SpacyService(Service):
     Example:
     --------
 
-    >>> from teanga import Document
-    >>> doc = Document("This is a test.")
+    >>> from teanga import Document, Corpus
+    >>> corpus = Corpus()
+    >>> corpus.add_layer_meta("text")
     >>> service = SpacyService("en_core_web_sm")
     >>> service.setup()
-    >>> service(doc)
-    >>> print(doc)
+    >>> doc = corpus.add_doc("This is a test.")
+    >>> corpus.apply(service)
     """
     def __init__(self, model_name):
         """Create a service for the SpaCY model name"""
@@ -34,7 +35,8 @@ class SpacyService(Service):
 
     def setup(self):
         """Load the SpaCY model"""
-        self.nlp = spacy.load(self.model_name)
+        if not hasattr(self, "nlp") or not self.nlp:
+            self.nlp = spacy.load(self.model_name)
 
     def requires(self):
         """Return the requirements for this service"""
@@ -91,7 +93,7 @@ class SpacyService(Service):
         if not hasattr(self, "nlp") or not self.nlp:
             raise Exception("SpaCY model not loaded. "
             + "Please call setup() on the service.")
-        result = self.nlp(doc.get_layer("text"))
+        result = self.nlp(doc.get_layer("text").raw())
         doc.add_layer("tokens", [
             (w.idx, w.idx + len(w)) for w in result])
         doc.add_layer("pos", [w.pos_ for w in result])
